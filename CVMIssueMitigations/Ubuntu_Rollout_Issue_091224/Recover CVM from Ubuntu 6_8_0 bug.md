@@ -11,7 +11,7 @@ In this article, we will guide you through the steps to resolve this issue.
 # How to identify the issue?
 You can use below commend to identify whether VM kernel version has been updated to version 6.8. 
 
-**Note** This will work if the Confidential VM has not been re-booted after the installation of the kernel update.
+**Note**: This will work if the Confidential VM has not been re-booted after the installation of the kernel update.
 
 ```
 apt list --installed | grep linux-image-6.8.0-1014-azure
@@ -21,11 +21,15 @@ apt list --installed | grep linux-image-6.8.0-1014-azure
 Here are the pre-requisites you will need to install before going to the next steps.
 
 - Requires PowerShell 7 (or pwsh), see https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell
-- Requires AzPowerShell, see https://docs.microsoft.com/en-us/powershell/azure/install-az-ps
+- Requires AzCli, see https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+    - Run `az login` and `az account set --subscription <sub_id>` after installing
+- Requires AzPowerShell for <strong>Customer Managed Key</strong> CVM recovery, see https://docs.microsoft.com/en-us/powershell/azure/install-az-ps
 - Requires jq, available in major package managers
   - On PowerShell: `winget install jqlang.jq`
   - On Debian/Ubuntu: `sudo apt install jq`
   - Consult https://jqlang.github.io/jq/download/ for other platforms
+
+If installing any packages, please start a new terminal session afterwards.
 
 # Remediation of the Kernel Panic error
 
@@ -60,13 +64,17 @@ $des_id="/subscriptions/<sub_id>/resourceGroups/<rg_name>/providers/Microsoft.Co
 ## Create Recovery VM
 The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same resource group.
 
-**Note** We tested this process on a D-Series TVM.
+**Note**: We tested this process on a D-Series TVM.
 
 ### Deploy recovery resources
 
-Create the recovery VM
+Create the recovery VM.
+
+> You may need to change the VM Size depending on region and quota availability.
 ```
-az vm create -g $rg_name -n $recovery_vm_name --image Canonical:ubuntu-24_04-lts:server:latest --size Standard_D2s_v4 --admin-username azureuser --admin-password "Password1234!" --location $location --security-type TrustedLaunch
+$vm_password="<set password>"
+$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:ubuntu-24_04-lts:server:latest --size Standard_D2s_v4 --admin-username azureuser --admin-password $vm_password --location $location --security-type TrustedLaunch)
+$recovery_vm_ip = $recovery_vm | jq -r ".publicIpaddress"
 ```
 
 ### Create Blank Disk
@@ -110,6 +118,12 @@ az vm disk attach -g $rg_name --vm-name $recovery_vm_name --disks $os_disk_id
 
 #### Inside the Recovery VM
 
+Connect to the recovery VM
+```
+ssh azureuser@$recovery_vm_ip
+```
+
+<blockquote>
 In the recovery VM, find the EFI partition in the CVM disk
 
 ```
@@ -119,7 +133,10 @@ lsblk -f | grep vfat | awk '$7 == "" {print $1}'
 If there's no output, you can also determine the partition manually:
 
 ```
-$ lsblk -f | grep vfat
+lsblk -f | grep vfat
+```
+The output will look like
+```
 ├─sda15 vfat        FAT32 UEFI                9BD8-CDB5                              98.2M     6% /boot/efi
 └─sdb15 vfat        FAT32 UEFI                1FEC-7DE7
 ```
@@ -130,8 +147,12 @@ Remove the unwanted kernel, replacing `sdb15` with the correct partition from ab
 ```
 sudo mkdir /cvm
 sudo mount /dev/sdb15 /cvm
-sudo rm /cvm/EFI/ubuntu/kernel.efi-6.8.0-1014-azure
+sudo rm /cvm/EFI/ubuntu/kernel.efi-6.8.0*
 ```
+
+Disconnect from the recovery VM.
+</blockquote>
+
 #### Detach the Disk
 Detach the disk from the recovery VM and reattach it to the CVM
 
@@ -145,8 +166,6 @@ az vm update -g $rg_name -n $vm_name --os-disk $os_disk_id
 
 For <strong>PMK</strong> and <strong>CMK</strong>, there is separate guidance later depending on your encryption type.
 
-**** TODO what duration is sufficient for PMK? ****
-
 Generate a SAS URI for the VMGS file which is used to get the recovery key.
 
 ```
@@ -155,29 +174,37 @@ $vmgs_sas_uri = echo $disk_sas | jq -r ".securityDataAccessSas"
 ```
 
 #### PMK
-**** TODO CPS is providing an updated flow? ****
+```
+$response = Invoke-WebRequest -Uri $vmgs_sas_uri -Method Head
+$headers = $response.Headers 
+$headers | Export-Clixml "$location-headers.xml"
+```
 
-Provide Microsoft support with the VMGS SAS URI to receive your recovery key.
+Provide Microsoft support with the VMGS headers to receive your recovery key.
 
 #### CMK
 The user running this script needs to have either
 - RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
-- Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
+- Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
 
 Update `$vmgsSas` with the contents of `$vmgs_sas_uri` at the top of `get_uki_recovery_key_cmk.ps1`
 then execute the script in PowerShell, e.g.
 
+> You may need to login with AzPowershell before running these commands: `Connect-AzAccount -Subscription <sub_id>`
+
 ```
-./get_uki_recovery_key_cmk.ps1
+./get_uki_recovery_key_cmk.ps1 -vmgs_sas_uri $vmgs_sas_uri
 ```
 
 or
 
 ```
-pwsh /path/to/get_uki_recovery_key_cmk.ps1
+pwsh /path/to/get_uki_recovery_key_cmk.ps1 -vmgs_sas_uri $vmgs_sas_uri
 ```
 
 Save the recovery key, e.g. `12345-67890-12345-67890-12345-67890-12345-67890`
+
+### Boot the CVM
 
 Cancel disk export after receiving the key so the VM can boot
 
@@ -197,10 +224,16 @@ For <strong>PMK</strong> or <strong>CMK</strong>, navigate to the CVM serial con
 The CVM now tries to boot into the non-existent kernel, so we need to modify the boot entries.
 
 #### Check Boot Order
+
+Connect to the CVM, or alternatively continue in the serial console
+<blockquote>
 We can examine the entries with the following
 
 ```
-$ efibootmgr
+efibootmgr
+```
+The output will look like
+```
 BootCurrent: 0003
 Timeout: 0 seconds
 BootOrder: 0002,0003
@@ -230,18 +263,22 @@ Set the boot order to your desired kernel
 sudo efibootmgr --bootorder 0003
 ```
 
+Reboot the VM
+```
+sudo reboot
+```
 No recovery key should be required anymore when rebooting, so you can connect through normal means, e.g. via SSH.
 
 #### After Reboot
-After rebooting the VM, we can clean up the the 6.8.0 kernel package remnants
+After rebooting and reconnecting to the VM, we can clean up the the 6.8.0 kernel package remnants
 
 ```
 sudo apt update
-sudo apt purge linux-image-6.8.0-1014-azure-fde linux-modules-6.8.0-1014-azure -y
+sudo apt purge linux-image-6.8.0* linux-modules-6.8.0* -y
 sudo apt autoremove -y
 sudo apt install linux-azure-fde -y
 ```
-
+</blockquote>
 
 # INTERNAL ONLY (TO BE REMOVED): To reproduce the boot failure
 ```
