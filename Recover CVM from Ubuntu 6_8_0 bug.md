@@ -259,7 +259,7 @@ sudo reboot
 No recovery key should be required anymore when rebooting, so you can connect through normal means, e.g. via SSH.
 
 #### After Reboot
-After rebooting the VM, we can clean up the the 6.8.0 kernel package remnants
+After rebooting and reconnecting to the VM, we can clean up the the 6.8.0 kernel package remnants
 
 ```
 sudo apt update
