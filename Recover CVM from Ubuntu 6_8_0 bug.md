@@ -21,7 +21,7 @@ apt list --installed | grep linux-image-6.8.0-1014-azure
 Here are the pre-requisites you will need to install before going to the next steps.
 
 - Requires PowerShell 7 (or pwsh), see https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell
-- Requires AzPowerShell, see https://docs.microsoft.com/en-us/powershell/azure/install-az-ps
+- Requires AzPowerShell for <strong>Customer Managed Key</strong> CVM recovery, see https://docs.microsoft.com/en-us/powershell/azure/install-az-ps
 - Requires jq, available in major package managers
   - On PowerShell: `winget install jqlang.jq`
   - On Debian/Ubuntu: `sudo apt install jq`
