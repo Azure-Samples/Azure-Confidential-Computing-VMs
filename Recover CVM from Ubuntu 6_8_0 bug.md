@@ -145,8 +145,6 @@ az vm update -g $rg_name -n $vm_name --os-disk $os_disk_id
 
 For <strong>PMK</strong> and <strong>CMK</strong>, there is separate guidance later depending on your encryption type.
 
-**** TODO what duration is sufficient for PMK? ****
-
 Generate a SAS URI for the VMGS file which is used to get the recovery key.
 
 ```
@@ -155,14 +153,18 @@ $vmgs_sas_uri = echo $disk_sas | jq -r ".securityDataAccessSas"
 ```
 
 #### PMK
-**** TODO CPS is providing an updated flow? ****
+```
+$vmgsSas=<vmgs-sas-url>
+$response = Invoke-WebRequest -Uri $vmgsSas -Method Head
+$headers = $response.Headers 
+```
 
-Provide Microsoft support with the VMGS SAS URI to receive your recovery key.
+Provide Microsoft support with the VMGS headers to receive your recovery key.
 
 #### CMK
 The user running this script needs to have either
 - RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
-- Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
+- Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
 
 Update `$vmgsSas` with the contents of `$vmgs_sas_uri` at the top of `get_uki_recovery_key_cmk.ps1`
 then execute the script in PowerShell, e.g.
