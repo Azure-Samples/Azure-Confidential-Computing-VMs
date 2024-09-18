@@ -64,7 +64,7 @@ $des_id="/subscriptions/<sub_id>/resourceGroups/<rg_name>/providers/Microsoft.Co
 ## Create Recovery VM
 The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same resource group.
 
-**Note** We tested this process on a D-Series TVM.
+**Note**: We tested this process on a D-Series TVM.
 
 ### Deploy recovery resources
 
@@ -72,7 +72,9 @@ Create the recovery VM.
 
 > You may need to change the VM Size depending on region and quota availability.
 ```
-az vm create -g $rg_name -n $recovery_vm_name --image Canonical:ubuntu-24_04-lts:server:latest --size Standard_D2s_v4 --admin-username azureuser --admin-password "Password1234!" --location $location --security-type TrustedLaunch
+$vm_password="<set password>"
+$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:ubuntu-24_04-lts:server:latest --size Standard_D2s_v4 --admin-username azureuser --admin-password $vm_password --location $location --security-type TrustedLaunch)
+$recovery_vm_ip = $recovery_vm | jq -r ".publicIpaddress"
 ```
 
 ### Create Blank Disk
@@ -116,6 +118,11 @@ az vm disk attach -g $rg_name --vm-name $recovery_vm_name --disks $os_disk_id
 
 #### Inside the Recovery VM
 
+Connect to the recovery VM
+```
+ssh azureuser@$recovery_vm_ip
+```
+
 In the recovery VM, find the EFI partition in the CVM disk
 
 ```
@@ -138,6 +145,9 @@ sudo mkdir /cvm
 sudo mount /dev/sdb15 /cvm
 sudo rm /cvm/EFI/ubuntu/kernel.efi-6.8.0-1014-azure
 ```
+
+Disconnect from the recovery VM. You may deallocate it now.
+
 #### Detach the Disk
 Detach the disk from the recovery VM and reattach it to the CVM
 
@@ -162,6 +172,7 @@ $vmgs_sas_uri = echo $disk_sas | jq -r ".securityDataAccessSas"
 ```
 $response = Invoke-WebRequest -Uri $vmgs_sas_uri -Method Head
 $headers = $response.Headers 
+$headers | Export-Clixml "$location-headers.xml"
 ```
 
 Provide Microsoft support with the VMGS headers to receive your recovery key.
@@ -185,6 +196,8 @@ pwsh /path/to/get_uki_recovery_key_cmk.ps1
 ```
 
 Save the recovery key, e.g. `12345-67890-12345-67890-12345-67890-12345-67890`
+
+### Boot the CVM
 
 Cancel disk export after receiving the key so the VM can boot
 
@@ -237,6 +250,10 @@ Set the boot order to your desired kernel
 sudo efibootmgr --bootorder 0003
 ```
 
+Reboot the VM
+```
+sudo reboot
+```
 No recovery key should be required anymore when rebooting, so you can connect through normal means, e.g. via SSH.
 
 #### After Reboot
