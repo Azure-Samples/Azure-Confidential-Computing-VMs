@@ -123,6 +123,7 @@ Connect to the recovery VM
 ssh azureuser@$recovery_vm_ip
 ```
 
+<blockquote>
 In the recovery VM, find the EFI partition in the CVM disk
 
 ```
@@ -146,7 +147,8 @@ sudo mount /dev/sdb15 /cvm
 sudo rm /cvm/EFI/ubuntu/kernel.efi-6.8.0-1014-azure
 ```
 
-Disconnect from the recovery VM. You may deallocate it now.
+Disconnect from the recovery VM.
+</blockquote>
 
 #### Detach the Disk
 Detach the disk from the recovery VM and reattach it to the CVM
@@ -219,6 +221,12 @@ For <strong>PMK</strong> or <strong>CMK</strong>, navigate to the CVM serial con
 The CVM now tries to boot into the non-existent kernel, so we need to modify the boot entries.
 
 #### Check Boot Order
+
+Connect to the recovery VM, or alternatively continue in the serial console
+```
+ssh azureuser@$recovery_vm_ip
+```
+<blockquote>
 We can examine the entries with the following
 
 ```
@@ -267,7 +275,7 @@ sudo apt purge linux-image-6.8.0-1014-azure-fde linux-modules-6.8.0-1014-azure -
 sudo apt autoremove -y
 sudo apt install linux-azure-fde -y
 ```
-
+</blockquote>
 
 # INTERNAL ONLY (TO BE REMOVED): To reproduce the boot failure
 ```
