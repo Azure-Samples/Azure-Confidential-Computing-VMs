@@ -21,11 +21,15 @@ apt list --installed | grep linux-image-6.8.0-1014-azure
 Here are the pre-requisites you will need to install before going to the next steps.
 
 - Requires PowerShell 7 (or pwsh), see https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell
+- Requires AzCli, see https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+    - Run `az login` and `az account set --subscription <sub_id>` after installing
 - Requires AzPowerShell for <strong>Customer Managed Key</strong> CVM recovery, see https://docs.microsoft.com/en-us/powershell/azure/install-az-ps
 - Requires jq, available in major package managers
   - On PowerShell: `winget install jqlang.jq`
   - On Debian/Ubuntu: `sudo apt install jq`
   - Consult https://jqlang.github.io/jq/download/ for other platforms
+
+If installing any packages, please start a new terminal session afterwards.
 
 # Remediation of the Kernel Panic error
 
@@ -64,7 +68,9 @@ The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel fr
 
 ### Deploy recovery resources
 
-Create the recovery VM
+Create the recovery VM.
+
+> You may need to change the VM Size depending on region and quota availability.
 ```
 az vm create -g $rg_name -n $recovery_vm_name --image Canonical:ubuntu-24_04-lts:server:latest --size Standard_D2s_v4 --admin-username azureuser --admin-password "Password1234!" --location $location --security-type TrustedLaunch
 ```
