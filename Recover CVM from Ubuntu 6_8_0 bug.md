@@ -11,7 +11,7 @@ In this article, we will guide you through the steps to resolve this issue.
 # How to identify the issue?
 You can use below commend to identify whether VM kernel version has been updated to version 6.8. 
 
-**Note** This will work if the Confidential VM has not been re-booted after the installation of the kernel update.
+**Note**: This will work if the Confidential VM has not been re-booted after the installation of the kernel update.
 
 ```
 apt list --installed | grep linux-image-6.8.0-1014-azure
