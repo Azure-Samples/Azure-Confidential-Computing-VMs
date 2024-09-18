@@ -147,7 +147,7 @@ Remove the unwanted kernel, replacing `sdb15` with the correct partition from ab
 ```
 sudo mkdir /cvm
 sudo mount /dev/sdb15 /cvm
-sudo rm /cvm/EFI/ubuntu/kernel.efi-6.8.0-1014-azure
+sudo rm /cvm/EFI/ubuntu/kernel.efi-6.8.0*
 ```
 
 Disconnect from the recovery VM.
@@ -274,7 +274,7 @@ After rebooting and reconnecting to the VM, we can clean up the the 6.8.0 kernel
 
 ```
 sudo apt update
-sudo apt purge linux-image-6.8.0-1014-azure-fde linux-modules-6.8.0-1014-azure -y
+sudo apt purge linux-image-6.8.0* linux-modules-6.8.0* -y
 sudo apt autoremove -y
 sudo apt install linux-azure-fde -y
 ```
