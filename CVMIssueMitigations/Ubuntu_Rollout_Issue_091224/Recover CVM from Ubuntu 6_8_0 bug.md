@@ -226,9 +226,6 @@ The CVM now tries to boot into the non-existent kernel, so we need to modify the
 #### Check Boot Order
 
 Connect to the recovery VM, or alternatively continue in the serial console
-```
-ssh azureuser@$recovery_vm_ip
-```
 <blockquote>
 We can examine the entries with the following
 
