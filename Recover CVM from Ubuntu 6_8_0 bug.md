@@ -154,8 +154,7 @@ $vmgs_sas_uri = echo $disk_sas | jq -r ".securityDataAccessSas"
 
 #### PMK
 ```
-$vmgsSas=<vmgs-sas-url>
-$response = Invoke-WebRequest -Uri $vmgsSas -Method Head
+$response = Invoke-WebRequest -Uri $vmgs_sas_uri -Method Head
 $headers = $response.Headers 
 ```
 
