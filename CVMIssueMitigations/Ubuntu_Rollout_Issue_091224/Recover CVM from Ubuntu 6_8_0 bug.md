@@ -225,7 +225,7 @@ The CVM now tries to boot into the non-existent kernel, so we need to modify the
 
 #### Check Boot Order
 
-Connect to the recovery VM, or alternatively continue in the serial console
+Connect to the CVM, or alternatively continue in the serial console
 <blockquote>
 We can examine the entries with the following
 
