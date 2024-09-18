@@ -185,6 +185,8 @@ The user running this script needs to have either
 Update `$vmgsSas` with the contents of `$vmgs_sas_uri` at the top of `get_uki_recovery_key_cmk.ps1`
 then execute the script in PowerShell, e.g.
 
+> You may need to login with AzPowershell before running these commands: `Connect-AzAccount -Subscription <sub_id>`
+
 ```
 ./get_uki_recovery_key_cmk.ps1
 ```
