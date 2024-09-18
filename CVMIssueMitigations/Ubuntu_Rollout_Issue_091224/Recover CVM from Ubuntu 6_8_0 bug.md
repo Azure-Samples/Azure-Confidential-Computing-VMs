@@ -50,7 +50,7 @@ $security_type="..."
 ```
 
 ### Set Recovery VM Variables
-The recovery process will deploy a recovery VM to the same resource group as the affected CVM(s). A new temp OS disk is also required to detach the CVM's OS disk.
+The recovery process will deploy a recovery VM to the same resource group as the affected CVM. A new temp OS disk is also required to detach the CVM's OS disk.
 ```
 $recovery_vm_name="<name for new vm>"
 $blank_disk_name="<name for temp disk>"
@@ -62,7 +62,7 @@ $des_id="/subscriptions/<sub_id>/resourceGroups/<rg_name>/providers/Microsoft.Co
 ```
 
 ## Create Recovery VM
-The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same resource group.
+The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same region.
 
 **Note**: We tested this process on a D-Series TVM.
 
@@ -280,12 +280,12 @@ sudo apt install linux-azure-fde -y
 ```
 </blockquote>
 
-# INTERNAL ONLY (TO BE REMOVED): To reproduce the boot failure
+### Recovery Resource Cleanup
+The recovery VM can be reused for other affected CVMs in the same region, and the blank OS disk can be reused for other affected CVMs <strong>with the same security type</strong>.
+
+If you would like to cleanup those resources, follow these steps:
+
 ```
-apt update; apt install linux-image-6.8.0-1014-azure-fde linux-modules-6.8.0-1014-azure
-```
-Note the new UKI
-```
-root@<REDACTED>uki-validation-pmk:/home/azureuser# ls /boot/efi/EFI/ubuntu/
-BOOTX64.CSV  fbx64.efi  kernel.efi-6.5.0-1025-azure  kernel.efi-6.8.0-1014-azure  mmx64.efi  shimx64.efi
+az disk delete --ids $blank_disk_id
+az vm delete --ids $($recovery_vm | jq -r ".id")
 ```
