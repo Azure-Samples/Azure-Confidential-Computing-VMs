@@ -133,7 +133,10 @@ lsblk -f | grep vfat | awk '$7 == "" {print $1}'
 If there's no output, you can also determine the partition manually:
 
 ```
-$ lsblk -f | grep vfat
+lsblk -f | grep vfat
+```
+The output will look like
+```
 ├─sda15 vfat        FAT32 UEFI                9BD8-CDB5                              98.2M     6% /boot/efi
 └─sdb15 vfat        FAT32 UEFI                1FEC-7DE7
 ```
@@ -230,7 +233,10 @@ ssh azureuser@$recovery_vm_ip
 We can examine the entries with the following
 
 ```
-$ efibootmgr
+efibootmgr
+```
+The output will look like
+```
 BootCurrent: 0003
 Timeout: 0 seconds
 BootOrder: 0002,0003
