@@ -1,5 +1,9 @@
+Param (
+    [Parameter(Mandatory=$true)]
+    [string]$vmgs_sas_uri
+)
 # Replace VM Guest State VHD Url and run the script
-$vmgsSas = "<uri_with_sas>"
+$vmgsSas = $vmgs_sas_uri
 $response = $null
 $response = Invoke-WebRequest -Uri $vmgsSas -Method Head
 if (-not $response) {

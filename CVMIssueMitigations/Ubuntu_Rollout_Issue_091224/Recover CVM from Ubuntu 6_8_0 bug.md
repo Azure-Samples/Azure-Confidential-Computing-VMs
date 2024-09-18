@@ -190,13 +190,13 @@ then execute the script in PowerShell, e.g.
 > You may need to login with AzPowershell before running these commands: `Connect-AzAccount -Subscription <sub_id>`
 
 ```
-./get_uki_recovery_key_cmk.ps1
+./get_uki_recovery_key_cmk.ps1 -vmgs_sas_uri $vmgs_sas_uri
 ```
 
 or
 
 ```
-pwsh /path/to/get_uki_recovery_key_cmk.ps1
+pwsh /path/to/get_uki_recovery_key_cmk.ps1 -vmgs_sas_uri $vmgs_sas_uri
 ```
 
 Save the recovery key, e.g. `12345-67890-12345-67890-12345-67890-12345-67890`
