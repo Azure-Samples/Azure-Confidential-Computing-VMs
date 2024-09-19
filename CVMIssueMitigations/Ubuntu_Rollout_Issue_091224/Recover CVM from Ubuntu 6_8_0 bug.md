@@ -23,12 +23,13 @@ apt list --installed | grep linux-image-6.8.0-1014-azure
 ```
 
 If version `6.8.0-1014-azure` is listed, please remove the installed kernel update immediately to prevent potential VM failure post-reboot.
-  ```
-  sudo apt update
-  sudo apt purge linux-*-6.8.0-1014-azure*
-  sudo apt install linux-azure-fde
-  ```
+```
+sudo apt update
+sudo apt purge linux-*-6.8.0-1014-azure*
+sudo apt install linux-azure-fde
+```
 
+If you are able to purge the 6.8.0 kernel, then you do not need to follow the remaining steps in this document.
 
 # Prerequisites
 Here are the pre-requisites you will need to install before going to the next steps.
