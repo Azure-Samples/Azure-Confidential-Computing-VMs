@@ -8,14 +8,10 @@ If the CVM has been rebooted post the 6.8.0-1014-azure patch installation & now 
 
 In this article, we will guide you through the steps to resolve this issue.
 
-If your existing VM is currently working properly, <strong>DO NOT update to kernel version 6.8.0-1014-azure</strong>. At this moment, it is recommended to stay with the last-known good kernel version, 6.5.0-1025-azure, <strong>DO NOT upgrade kernel until further notice from Azure. If you need to create a new NCC40ads_H100_v5 Confidential GPU VM instances</strong>, please use the updated CGPU onboarding package v3.0.9 ([Release Release V3.0.9 · Azure/az-cgpu-onboarding (github.com)](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.9)) to create the new VM instances.
-<strong>If your VM instances have already installed the kernel update but NOT rebooted</strong>:
-- If version 6.8.0-1014-azure is listed, please remove the installed kernel update immediately to prevent potential VM failure post-reboot.
-  ```
-  sudo apt update
-  sudo apt purge linux-*-6.8.0-1014-azure*
-  sudo apt install linux-azure-fde
-  ```
+If your existing VM is currently working properly, <strong>DO NOT update to kernel version 6.8.0-1014-azure</strong>. At this moment, it is recommended to stay with the last-known good kernel version, 6.5.0-1025-azure.
+
+## For Confidential GPU Customers:
+If you need to create a new NCC40ads_H100_v5 Confidential GPU VM instances</strong>, please use the updated CGPU onboarding package v3.0.9 ([Release Release V3.0.9 · Azure/az-cgpu-onboarding (github.com)](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.9)) to create the new VM instances.
 
 # How to identify the issue?
 You can use below commend to identify whether VM kernel version has been updated to version 6.8. 
@@ -25,6 +21,14 @@ You can use below commend to identify whether VM kernel version has been updated
 ```
 apt list --installed | grep linux-image-6.8.0-1014-azure
 ```
+
+If version `6.8.0-1014-azure` is listed, please remove the installed kernel update immediately to prevent potential VM failure post-reboot.
+  ```
+  sudo apt update
+  sudo apt purge linux-*-6.8.0-1014-azure*
+  sudo apt install linux-azure-fde
+  ```
+
 
 # Prerequisites
 Here are the pre-requisites you will need to install before going to the next steps.
@@ -76,7 +80,7 @@ $des_id="/subscriptions/<sub_id>/resourceGroups/<rg_name>/providers/Microsoft.Co
 ```
 
 ## Create Recovery VM
-The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same region.
+The recovery VM is used to mount the affected CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same region.
 
 **Note**: We tested this process on a DC-Series CVM.
 
@@ -87,7 +91,7 @@ Create the recovery VM.
 > You may need to change the VM Size depending on region and quota availability.
 ```
 $vm_password="<set password>"
-$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest --size Standard_DC2as_v6 --admin-username azureuser --admin-password $vm_password --location $location --security-type ConfidentialVM --os-disk-security-encryption-type "VMGuestStateOnly")
+$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest --size Standard_DC2as_v5 --admin-username azureuser --admin-password $vm_password --location $location --security-type ConfidentialVM --os-disk-security-encryption-type "VMGuestStateOnly")
 $recovery_vm_ip = $recovery_vm | jq -r ".publicIpaddress"
 ```
 
