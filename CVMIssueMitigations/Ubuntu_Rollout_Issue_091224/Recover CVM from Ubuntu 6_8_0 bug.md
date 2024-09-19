@@ -64,7 +64,7 @@ $des_id="/subscriptions/<sub_id>/resourceGroups/<rg_name>/providers/Microsoft.Co
 ## Create Recovery VM
 The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same region.
 
-**Note**: We tested this process on a D-Series TVM.
+**Note**: We tested this process on a DC-Series CVM.
 
 ### Deploy recovery resources
 
@@ -73,7 +73,7 @@ Create the recovery VM.
 > You may need to change the VM Size depending on region and quota availability.
 ```
 $vm_password="<set password>"
-$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:ubuntu-24_04-lts:server:latest --size Standard_D2s_v4 --admin-username azureuser --admin-password $vm_password --location $location --security-type TrustedLaunch)
+$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest --size Standard_DC2as_v6 --admin-username azureuser --admin-password $vm_password --location $location --security-type ConfidentialVM --os-disk-security-encryption-type "VMGuestStateOnly")
 $recovery_vm_ip = $recovery_vm | jq -r ".publicIpaddress"
 ```
 
