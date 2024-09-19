@@ -307,7 +307,7 @@ az vm delete --ids $($recovery_vm | jq -r ".id")
 ```
 
 ## Decrypt CVM Partition on Recovery VM
-If the above steps were not able to recover the CVM or you want to backup the CVM's data instead, you can decrypt the CVM's data partition on the recovery VM instead.
+If the above steps were not able to recover the CVM or you want to backup the CVM's data instead, you can decrypt the CVM's data partition on the recovery VM.
 
 You cannot use the human-readable recovery key for these steps. Get the key in its byte format instead:
 
@@ -333,6 +333,7 @@ Write-Host "Backing up recovery key bytearray to file $outputFile"
 The output file `./cvm_recovery_key.bin` contains the key in the necessary format.
 
 ### Mount the CVM Partition
+Copy the required filed to the recovery VM
 ```
 scp ./cvm_recovery_key.bin azureuser@$recovery_vm_ip:~
 scp ./decrypt_cvm_partition.sh azureuser@$recovery_vm_ip:~
