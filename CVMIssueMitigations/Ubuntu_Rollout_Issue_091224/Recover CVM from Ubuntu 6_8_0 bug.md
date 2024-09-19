@@ -8,7 +8,6 @@ If the CVM has been rebooted post the 6.8.0-1014-azure patch installation & now 
 
 In this article, we will guide you through the steps to resolve this issue.
 
-## For Confidential GPU Customers:
 If your existing VM is currently working properly, <strong>DO NOT update to kernel version 6.8.0-1014-azure</strong>. At this moment, it is recommended to stay with the last-known good kernel version, 6.5.0-1025-azure, <strong>DO NOT upgrade kernel until further notice from Azure. If you need to create a new NCC40ads_H100_v5 Confidential GPU VM instances</strong>, please use the updated CGPU onboarding package v3.0.9 ([Release Release V3.0.9 · Azure/az-cgpu-onboarding (github.com)](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.9)) to create the new VM instances.
 <strong>If your VM instances have already installed the kernel update but NOT rebooted</strong>:
 - If version 6.8.0-1014-azure is listed, please remove the installed kernel update immediately to prevent potential VM failure post-reboot.
