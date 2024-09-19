@@ -75,4 +75,12 @@ if ($osType -eq "Windows") {
     }
     $recoveryKey = $recoveryArray -join "-"
     Write-Host "Linux recovery key is : $recoveryKey"
+
+    # Define the output file path
+    $outputFile = "./cvm_recovery_key.bin"
+    [Environment]::CurrentDirectory = $pwd
+    Write-Host "Backing up recovery key bytearray to file $outputFile"
+
+    # Write the byte array to a file
+    [System.IO.File]::WriteAllBytes($outputFile, $byteArray)
 }

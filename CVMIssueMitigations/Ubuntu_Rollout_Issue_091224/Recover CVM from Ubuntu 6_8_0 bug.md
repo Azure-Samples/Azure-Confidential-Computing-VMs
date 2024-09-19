@@ -122,7 +122,7 @@ $os_disk_name = $(az vm show -g $rg_name -n $vm_name --query "storageProfile.osD
 ### Repair the Disk
 Swap the OS disk out for the new blank disk
 
-#### Deallocate the Disk
+#### Detach the CVM OS Disk
 ```
 az vm deallocate -g $rg_name -n $vm_name
 az vm update -g $rg_name -n $vm_name --os-disk $blank_disk_id
@@ -305,3 +305,61 @@ If you would like to cleanup those resources, follow these steps:
 az disk delete --ids $blank_disk_id
 az vm delete --ids $($recovery_vm | jq -r ".id")
 ```
+
+## Decrypt CVM Partition on Recovery VM
+If the above steps were not able to recover the CVM or you want to backup the CVM's data instead, you can decrypt the CVM's data partition on the recovery VM.
+
+You cannot use the human-readable recovery key for these steps. Get the key in its byte format instead:
+
+#### CMK
+The script `get_uki_recovery_key_cmk.ps1` will dump the recovery key bytes to `./cvm_recovery_key.bin`. We will use this key to decrypt and mount the CVM partition in the recovery VM.
+
+#### PMK
+Run the following to convert the recovery key to bytes
+```
+$recoveryKey = "<your recovery key>"
+$recoveryArray = $recoveryKey -split "-"
+$byteArray = New-Object Byte[] 16
+for($i = 0; $i -lt $recoveryArray.Length; $i++) {
+    $uInt16 = [uint16]::Parse($recoveryArray[$i])
+    [System.BitConverter]::GetBytes($uInt16).CopyTo($byteArray, $i * 2)
+}
+$outputFile = "./cvm_recovery_key.bin"
+[Environment]::CurrentDirectory = $pwd
+Write-Host "Backing up recovery key bytearray to file $outputFile"
+[System.IO.File]::WriteAllBytes($outputFile, $byteArray)
+```
+
+The output file `./cvm_recovery_key.bin` contains the key in the necessary format.
+
+### Mount the CVM Partition
+Copy the required filed to the recovery VM
+```
+scp ./cvm_recovery_key.bin azureuser@$recovery_vm_ip:~
+scp ./decrypt_cvm_partition.sh azureuser@$recovery_vm_ip:~
+```
+If the CVM OS disk is no longer attached to the recovery VM, follow the steps from [Detach the CVM OS Disk](#Detach-the-CVM-OS-Disk) to attach it to the recovery VM again.
+
+Connect to the recovery VM
+```
+ssh azureuser@$recovery_vm_ip
+```
+<blockquote>
+
+Run the provided `decrypt_cvm_partition.sh` script to mount the CVM data partition to `/mnt/cvm_fs`
+```
+bash decrypt_cvm_partition.sh cvm_recovery_key.bin
+```
+
+</blockquote>
+
+### Unmount CVM Partition
+To unmount the CVM partition, execute the following in the recovery VM
+<blockquote>
+
+```
+sudo umount /mnt/cvm_fs
+sudo cryptsetup luksClose decrypted_cvm_partition
+```
+
+</blockquote>
