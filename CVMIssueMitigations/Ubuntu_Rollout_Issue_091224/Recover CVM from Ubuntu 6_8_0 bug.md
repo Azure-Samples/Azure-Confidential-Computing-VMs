@@ -8,6 +8,15 @@ If the CVM has been rebooted post the 6.8.0-1014-azure patch installation & now 
 
 In this article, we will guide you through the steps to resolve this issue.
 
+If your existing VM is currently working properly, <strong>DO NOT update to kernel version 6.8.0-1014-azure</strong>. At this moment, it is recommended to stay with the last-known good kernel version, 6.5.0-1025-azure, <strong>DO NOT upgrade kernel until further notice from Azure. If you need to create a new NCC40ads_H100_v5 Confidential GPU VM instances</strong>, please use the updated CGPU onboarding package v3.0.9 ([Release Release V3.0.9 · Azure/az-cgpu-onboarding (github.com)](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.9)) to create the new VM instances.
+<strong>If your VM instances have already installed the kernel update but NOT rebooted</strong>:
+- If version 6.8.0-1014-azure is listed, please remove the installed kernel update immediately to prevent potential VM failure post-reboot.
+  ```
+  sudo apt update
+  sudo apt purge linux-\*-6.8.0-1014-azure\*
+  sudo apt install linux-azure-fde
+  ```
+
 # How to identify the issue?
 You can use below commend to identify whether VM kernel version has been updated to version 6.8. 
 
@@ -30,6 +39,11 @@ Here are the pre-requisites you will need to install before going to the next st
   - Consult https://jqlang.github.io/jq/download/ for other platforms
 
 If installing any packages, please start a new terminal session afterwards.
+
+For affected CVMs that are encrypted using a Customer Managed Key, make sure the user running these commands has either
+- RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
+- Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
+
 
 # Remediation of the Kernel Panic error
 
@@ -183,9 +197,6 @@ $headers | Export-Clixml "$location-headers.xml"
 Provide Microsoft support with the VMGS headers to receive your recovery key.
 
 #### CMK
-The user running this script needs to have either
-- RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
-- Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
 
 Update `$vmgsSas` with the contents of `$vmgs_sas_uri` at the top of `get_uki_recovery_key_cmk.ps1`
 then execute the script in PowerShell, e.g.
