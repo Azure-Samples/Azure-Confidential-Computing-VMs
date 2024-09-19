@@ -1,5 +1,5 @@
-if [$# -lt 1]; then
-    echo "Usage: bash decrypt_cvm_partition.sh /path/to/recovery_key.bin"
+if [ $# -lt 1 ]; then
+    echo "Usage: bash unlock_cvm_os_disk_for_data_backup.sh /path/to/recovery_key.bin"
     exit 1
 fi
 
@@ -40,3 +40,8 @@ else
     sudo cryptsetup luksClose decrypted_cvm_partition
     exit 1
 fi
+
+echo
+echo "To cleanup when finished, run:"
+echo "sudo umount $mount_point"
+echo "sudo cryptsetup luksClose decrypted_cvm_partition"

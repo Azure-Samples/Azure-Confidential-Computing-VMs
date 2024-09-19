@@ -336,7 +336,7 @@ The output file `./cvm_recovery_key.bin` contains the key in the necessary forma
 Copy the required filed to the recovery VM
 ```
 scp ./cvm_recovery_key.bin azureuser@$recovery_vm_ip:~
-scp ./decrypt_cvm_partition.sh azureuser@$recovery_vm_ip:~
+scp ./unlock_cvm_os_disk_for_data_backup.sh azureuser@$recovery_vm_ip:~
 ```
 If the CVM OS disk is no longer attached to the recovery VM, follow the steps from [Detach the CVM OS Disk](#Detach-the-CVM-OS-Disk) to attach it to the recovery VM again.
 
@@ -346,9 +346,9 @@ ssh azureuser@$recovery_vm_ip
 ```
 <blockquote>
 
-Run the provided `decrypt_cvm_partition.sh` script to mount the CVM data partition to `/mnt/cvm_fs`
+Run the provided `unlock_cvm_os_disk_for_data_backup.sh` script to mount the CVM data partition to `/mnt/cvm_fs`
 ```
-bash decrypt_cvm_partition.sh cvm_recovery_key.bin
+bash unlock_cvm_os_disk_for_data_backup.sh cvm_recovery_key.bin
 ```
 
 </blockquote>
