@@ -8,14 +8,28 @@ If the CVM has been rebooted post the 6.8.0-1014-azure patch installation & now 
 
 In this article, we will guide you through the steps to resolve this issue.
 
+If your existing VM is currently working properly, <strong>DO NOT update to kernel version 6.8.0-1014-azure</strong>. At this moment, it is recommended to stay with the last-known good kernel version, 6.5.0-1025-azure.
+
+## For Confidential GPU Customers:
+If you need to create a new NCC40ads_H100_v5 Confidential GPU VM instances</strong>, please use the updated CGPU onboarding package v3.0.9 ([Release Release V3.0.9 · Azure/az-cgpu-onboarding (github.com)](https://github.com/Azure/az-cgpu-onboarding/releases/tag/V3.0.9)) to create the new VM instances.
+
 # How to identify the issue?
 You can use below commend to identify whether VM kernel version has been updated to version 6.8. 
 
-**Note**: This will work if the Confidential VM has not been re-booted after the installation of the kernel update.
+**Note**: This will work if the Confidential VM has not been rebooted after the installation of the kernel update.
 
 ```
 apt list --installed | grep linux-image-6.8.0-1014-azure
 ```
+
+If version `6.8.0-1014-azure` is listed, please remove the installed kernel update immediately to prevent potential VM failure post-reboot.
+```
+sudo apt update
+sudo apt purge linux-*-6.8.0-1014-azure*
+sudo apt install linux-azure-fde
+```
+
+If you are able to purge the 6.8.0 kernel, then you do not need to follow the remaining steps in this document.
 
 # Prerequisites
 Here are the pre-requisites you will need to install before going to the next steps.
@@ -30,6 +44,11 @@ Here are the pre-requisites you will need to install before going to the next st
   - Consult https://jqlang.github.io/jq/download/ for other platforms
 
 If installing any packages, please start a new terminal session afterwards.
+
+For affected CVMs that are encrypted using a Customer Managed Key, make sure the user running these commands has either
+- RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
+- Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
+
 
 # Remediation of the Kernel Panic error
 
@@ -50,7 +69,7 @@ $security_type="..."
 ```
 
 ### Set Recovery VM Variables
-The recovery process will deploy a recovery VM to the same resource group as the affected CVM(s). A new temp OS disk is also required to detach the CVM's OS disk.
+The recovery process will deploy a recovery VM to the same resource group as the affected CVM. A new temp OS disk is also required to detach the CVM's OS disk.
 ```
 $recovery_vm_name="<name for new vm>"
 $blank_disk_name="<name for temp disk>"
@@ -62,9 +81,9 @@ $des_id="/subscriptions/<sub_id>/resourceGroups/<rg_name>/providers/Microsoft.Co
 ```
 
 ## Create Recovery VM
-The recovery VM is used to mount to CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same resource group.
+The recovery VM is used to mount the affected CVM's OS disk and remove the 6.8.0 kernel from the EFI partition. It can be any VM and does not need to be a CVM itself. You can use the same recovery VM for multiple CVM recoveries if the affected resources are in the same region.
 
-**Note**: We tested this process on a D-Series TVM.
+**Note**: We tested this process on a DC-Series CVM.
 
 ### Deploy recovery resources
 
@@ -73,7 +92,7 @@ Create the recovery VM.
 > You may need to change the VM Size depending on region and quota availability.
 ```
 $vm_password="<set password>"
-$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:ubuntu-24_04-lts:server:latest --size Standard_D2s_v4 --admin-username azureuser --admin-password $vm_password --location $location --security-type TrustedLaunch)
+$recovery_vm=$(az vm create -g $rg_name -n $recovery_vm_name --image Canonical:0001-com-ubuntu-confidential-vm-jammy:22_04-lts-cvm:latest --size Standard_DC2as_v5 --admin-username azureuser --admin-password $vm_password --location $location --security-type ConfidentialVM --os-disk-security-encryption-type "VMGuestStateOnly")
 $recovery_vm_ip = $recovery_vm | jq -r ".publicIpaddress"
 ```
 
@@ -183,9 +202,6 @@ $headers | Export-Clixml "$location-headers.xml"
 Provide Microsoft support with the VMGS headers to receive your recovery key.
 
 #### CMK
-The user running this script needs to have either
-- RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
-- Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
 
 Update `$vmgsSas` with the contents of `$vmgs_sas_uri` at the top of `get_uki_recovery_key_cmk.ps1`
 then execute the script in PowerShell, e.g.
@@ -280,12 +296,12 @@ sudo apt install linux-azure-fde -y
 ```
 </blockquote>
 
-# INTERNAL ONLY (TO BE REMOVED): To reproduce the boot failure
+### Recovery Resource Cleanup
+The recovery VM can be reused for other affected CVMs in the same region, and the blank OS disk can be reused for other affected CVMs <strong>with the same security type</strong>.
+
+If you would like to cleanup those resources, follow these steps:
+
 ```
-apt update; apt install linux-image-6.8.0-1014-azure-fde linux-modules-6.8.0-1014-azure
-```
-Note the new UKI
-```
-root@<REDACTED>uki-validation-pmk:/home/azureuser# ls /boot/efi/EFI/ubuntu/
-BOOTX64.CSV  fbx64.efi  kernel.efi-6.5.0-1025-azure  kernel.efi-6.8.0-1014-azure  mmx64.efi  shimx64.efi
+az disk delete --ids $blank_disk_id
+az vm delete --ids $($recovery_vm | jq -r ".id")
 ```
