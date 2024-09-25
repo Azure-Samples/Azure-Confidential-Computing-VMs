@@ -27,7 +27,6 @@ $keyUri = $headers.'x-ms-meta-Cvm_recovery_key_identifier'
 $wrappedKey = $headers.'x-ms-meta-Cvm_wrapped_recovery_key'
 $osType = $headers.'x-ms-meta-Cvm_recovery_key_os_type'
 
-
 $token = $null
 if ($host.Version.Major -eq 5) {
     $resource = [uri]$keyUri
