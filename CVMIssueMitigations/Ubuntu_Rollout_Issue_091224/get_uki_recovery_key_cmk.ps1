@@ -27,8 +27,13 @@ $keyUri = $headers.'x-ms-meta-Cvm_recovery_key_identifier'
 $wrappedKey = $headers.'x-ms-meta-Cvm_wrapped_recovery_key'
 $osType = $headers.'x-ms-meta-Cvm_recovery_key_os_type'
 
+
 $token = $null
-$resource = [uri]$keyUri.GetValue(0)
+if ($host.Version.Major -eq 5) {
+    $resource = [uri]$keyUri
+} else {
+    $resource = [uri]$keyUri.GetValue(0)
+}
 if ($resource.Authority.EndsWith("vault.azure.net")) {
     $token = Get-AzAccessToken -ResourceUrl "https://vault.azure.net"
 } else {
