@@ -45,7 +45,7 @@ For affected CVMs that are encrypted using a Customer Managed Key, make sure the
 - RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
 - Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
 
-
+#### Get Disk vmgs info for recovery keys
 <strong>VM Guest State Only</strong> CVMs may skip this section since no recovery key is required to boot.
 
 For <strong>Platform Managed Keys (PMK)</strong> and <strong>Customer Managed Keys (CMK)</strong>, please refer to the separate guidance provided later in this document, which is specific to your encryption type.
