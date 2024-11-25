@@ -27,6 +27,25 @@ We advise customers against executing this upgrade path (nullboot package (versi
 
 To obtain a recovery key and unblock the VM boot, please follow the steps outlined below. Additional instructions on how to recover from the incorrectly installed nullboot package are currently under investigation and will be provided once available. (Please note: at this time, any updates or reinstallation of the existing nullboot package will fail.)
 
+#### Prerequisites
+Here are the pre-requisites you will need to install before going to the next steps.
+
+- Requires PowerShell 7 (or pwsh), see https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell
+- Requires AzCli, see https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+    - Run `az login` and `az account set --subscription <sub_id>` after installing
+- Requires AzPowerShell for <strong>Customer Managed Key</strong> CVM recovery, see https://docs.microsoft.com/en-us/powershell/azure/install-az-ps
+- Requires jq, available in major package managers
+  - On PowerShell: `winget install jqlang.jq`
+  - On Debian/Ubuntu: `sudo apt install jq`
+  - Consult https://jqlang.github.io/jq/download/ for other platforms
+
+If installing any packages, please start a new terminal session afterwards.
+
+For affected CVMs that are encrypted using a Customer Managed Key, make sure the user running these commands has either
+- RBAC Key Vault Crypto User on the CVM DES Key Vault <strong>if RBAC is enabled</strong>
+- Unwrap Key permissions under the Key Vault Access Policy <strong>if RBAC is disabled</strong>
+
+
 <strong>VM Guest State Only</strong> CVMs may skip this section since no recovery key is required to boot.
 
 For <strong>Platform Managed Keys (PMK)</strong> and <strong>Customer Managed Keys (CMK)</strong>, please refer to the separate guidance provided later in this document, which is specific to your encryption type.
@@ -34,8 +53,18 @@ For <strong>Platform Managed Keys (PMK)</strong> and <strong>Customer Managed Ke
 Generate a SAS URI for the VMGS file which is used to get the recovery key.
 
 ```
+$vm_name="<name of the vm>"
+$rg_name="<name of the resource group>"
+$location="<name of the region>"
+$os_disk_id = $(az vm show -g $rg_name -n $vm_name --query "storageProfile.osDisk.managedDisk.id")
+$os_disk_name = $(az vm show -g $rg_name -n $vm_name --query "storageProfile.osDisk.name")
+
+# please stop the VM and run 
 $disk_sas = $(az disk grant-access --access-level Read --duration-in-seconds 3600 --name $os_disk_name --resource-group $rg_name --secure-vm-guest-state-sas)
 $vmgs_sas_uri = echo $disk_sas | jq -r ".securityDataAccessSas"
+
+# After getting the recovery key, need to release the disk access before starting the VM.  
+az disk revoke-access --disk-name $os_disk_name --resource-group $rg_name
 ```
 
 #### PMK
