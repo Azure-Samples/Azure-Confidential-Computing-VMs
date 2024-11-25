@@ -13,7 +13,7 @@ Customers who used this specific package version and subsequently booted their C
 ### Recommended Action: 
 We have identified a potential issue that may impact CVM and confidential GPU VM deployment. 
 We advise customers against executing this upgrade path (nullboot package (version 0.4.0-0ubuntu0.22.04.3)). 
-If you have already performed this upgrade and are experiencing downtime, please create a Microsoft support ticket at aka.ms/AzSupt with tracking ID TNQ5-1X8.
+If you have already performed this upgrade and are experiencing downtime, please follow the below instruction for unblock and create a Microsoft support ticket at aka.ms/AzSupt with tracking ID TNQ5-1X8.
 
 
 ### Get the recovery key
