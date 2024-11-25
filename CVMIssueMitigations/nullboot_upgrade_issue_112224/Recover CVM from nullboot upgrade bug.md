@@ -7,7 +7,9 @@ Potential downtime and reboots related to nullboot package (version 0.4.0-0ubunt
 Canonical is actively working on removing the impacted package and publishing a patched version. Meanwhile, if you cannot connect to your 22.04 "Confidential Virtual Machine" or "Confidential GPU Virtual Machine" using DiskWithVMGuestState encryption, please create a Microsoft support ticket at https://ms.portal.azure.com/#view/Microsoft_Azure_Support/HelpAndSupportBlade/~/overview with tracking ID TNQ5-1X8.
 
 ### Impact Statement: 
-Starting at 13:05 UTC on 19 November 2024, you have been identified as a customer using Virtual Machines who may experience downtime during the new Ubuntu update and subsequent reboot. Impact for this issue is limited to a nullboot package (version 0.4.0-0ubuntu0.22.04.3) published by a third-party partner, which contained an issue that impacts "Confidential Virtual Machines" and "Confidential GPU Virtual Machines" using the DiskWithVMGuestState encryption type. Customers who consumed this specific package version and subsequently booted their CVM would be prompted to enter a recovery key to unlock 
+Starting at 13:05 UTC on 19 November 2024, you have been identified as a customer using Virtual Machines who may experience downtime during the new Ubuntu update and subsequent reboot. The impact of this issue is limited to a specific nullboot package (version 0.4.0-0ubuntu0.22.04.3) published by a third-party partner. This package contained an issue affecting "Confidential Virtual Machines" and "Confidential GPU Virtual Machines" using the DiskWithVMGuestState encryption type.
+
+Customers who used this specific package version and subsequently booted their CVMs would have been prompted to enter a recovery key to unlock the machine. The problematic package has now been revoked by Canonical, and a newer version has been republished. As a result, for any future upgrades, the issue should already be mitigated.
 
 
 ### Recommended Action: 
@@ -17,6 +19,9 @@ If you have already performed this upgrade and are experiencing downtime, please
 
 
 ### Get the recovery key
+
+To obtain a recovery key and unblock the VM boot, please follow the steps outlined below. Additional instructions on how to recover from the incorrectly installed nullboot package are currently under investigation and will be provided once available. (Please note: at this time, any updates or reinstallation of the existing nullboot package will fail.)
+
 <strong>VMGSOnly</strong> CVMs may skip this section since no recovery key is required to boot.
 
 For <strong>PMK</strong> and <strong>CMK</strong>, there is separate guidance later depending on your encryption type.
