@@ -2,9 +2,7 @@
 
 ### Advisory - Virtual Machines
 Potential downtime and reboots related to nullboot package (version 0.4.0-0ubuntu0.22.04.3) update
-
-### Recommended action: 
-Canonical is actively working on removing the impacted package and publishing a patched version. Meanwhile, if you cannot connect to your 22.04 "Confidential Virtual Machine" or "Confidential GPU Virtual Machine" using DiskWithVMGuestState encryption, please create a Microsoft support ticket at https://ms.portal.azure.com/#view/Microsoft_Azure_Support/HelpAndSupportBlade/~/overview with tracking ID TNQ5-1X8.
+TNQ5-1X8.
 
 ### Impact Statement: 
 Starting at 13:05 UTC on 19 November 2024, you have been identified as a customer using Virtual Machines who may experience downtime during the new Ubuntu update and subsequent reboot. The impact of this issue is limited to a specific nullboot package (version 0.4.0-0ubuntu0.22.04.3) published by a third-party partner. This package contained an issue affecting "Confidential Virtual Machines" and "Confidential GPU Virtual Machines" using the DiskWithVMGuestState encryption type.
