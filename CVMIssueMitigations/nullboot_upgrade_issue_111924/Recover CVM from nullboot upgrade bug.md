@@ -5,7 +5,7 @@ Potential downtime and reboots related to nullboot package (version 0.4.0-0ubunt
 TNQ5-1X8.
 
 ### Impact Statement: 
-Starting at 13:05 UTC on 19 November 2024, you have been identified as a customer using Virtual Machines, who may experience downtime during the new Ubuntu update and subsequent reboot. The impact of this issue is limited to a specific nullboot package (version 0.4.0-0ubuntu0.22.04.3) published by a third-party partner. This package contained an issue affecting "Confidential Virtual Machines" and "Confidential GPU Virtual Machines" using the DiskWithVMGuestState encryption type.
+Starting at 13:05 UTC on 19 November 2024, you have been identified as a customer using Virtual Machines, who may experience downtime during the new Ubuntu update and subsequent reboot. The impact of this issue is limited to a specific nullboot package (version 0.4.0-0ubuntu0.22.04.3) published by Canonical. This package contained an issue affecting "Confidential Virtual Machines" and "Confidential GPU Virtual Machines" using the DiskWithVMGuestState encryption type.
 
 Customers who used this specific package version and subsequently booted their CVMs would have been prompted to enter a recovery key to unlock the machine. The problematic package has now been revoked by Canonical, and a newer version has been republished. As a result, for any future upgrades, the issue should already be mitigated.
 
@@ -17,6 +17,8 @@ We advise customers against executing this upgrade path (nullboot package (versi
     ```
     # If the installed version is NOT 0.4.0-0ubuntu0.22.04.3, you are not impacted.
     # If the installed version is 0.4.0-0ubuntu0.22.04.3, do NOT reboot, immediately run
+    # sudo apt update
+    # sudo apt install nullboot
     apt list --installed nullboot
     ```
 
@@ -62,9 +64,6 @@ $os_disk_name = $(az vm show -g $rg_name -n $vm_name --query "storageProfile.osD
 # please stop the VM and run 
 $disk_sas = $(az disk grant-access --access-level Read --duration-in-seconds 3600 --name $os_disk_name --resource-group $rg_name --secure-vm-guest-state-sas)
 $vmgs_sas_uri = echo $disk_sas | jq -r ".securityDataAccessSas"
-
-# After getting the recovery key, need to release the disk access before starting the VM.  
-az disk revoke-access --disk-name $os_disk_name --resource-group $rg_name
 ```
 
 #### PMK
@@ -95,3 +94,8 @@ pwsh /path/to/get_uki_recovery_key_cmk.ps1 -vmgs_sas_uri $vmgs_sas_uri
 ```
 
 Save the recovery key, e.g. `12345-67890-12345-67890-12345-67890-12345-67890`
+
+```
+# After getting the recovery key, need to release the disk access before starting the VM.  
+az disk revoke-access --disk-name $os_disk_name --resource-group $rg_name
+```
