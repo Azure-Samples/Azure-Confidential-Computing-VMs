@@ -1,4 +1,4 @@
-# Attention Azure Confidential VM/Confidential GPU Users:
+# Attention Azure Confidential VM/Confidential GPU VM Users:
 
 ### Advisory - Virtual Machines
 Potential downtime and reboots related to nullboot package (version 0.4.0-0ubuntu0.22.04.3) update
