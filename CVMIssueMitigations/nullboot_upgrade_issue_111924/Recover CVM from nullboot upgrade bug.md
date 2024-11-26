@@ -15,11 +15,12 @@ We have identified a potential issue that may impact CVM and confidential GPU VM
 We advise customers against executing this upgrade path (nullboot package (version 0.4.0-0ubuntu0.22.04.3)). 
 - Check wether your VM is impacted:
     ```
+    apt list --installed nullboot
+
     # If the installed version is NOT 0.4.0-0ubuntu0.22.04.3, you are not impacted.
     # If the installed version is 0.4.0-0ubuntu0.22.04.3, do NOT reboot, immediately run
-    # sudo apt update
-    # sudo apt install nullboot
-    apt list --installed nullboot
+    sudo apt update
+    sudo apt install nullboot
     ```
 
 - If you have already performed this upgrade and are experiencing downtime, please follow the below instruction for unblock and create a Microsoft support ticket at aka.ms/AzSupt with tracking ID TNQ5-1X8.
