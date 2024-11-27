@@ -23,12 +23,12 @@ We advise customers against executing this upgrade path (nullboot package (versi
     sudo apt install nullboot
     ```
 
-- If you have already performed this upgrade and are experiencing downtime, please follow the below instruction for unblock and create a Microsoft support ticket at aka.ms/AzSupt with tracking ID TNQ5-1X8.
+- If you have already performed this upgrade and are experiencing downtime, please follow the below instruction for unblock and recovery.
 
 
 ### Get the recovery key
 
-To obtain a recovery key and unblock the VM boot, please follow the steps outlined below. Additional instructions on how to recover from the incorrectly installed nullboot package are currently under investigation and will be provided once available. (Please note: at this time, any updates or reinstallation of the existing nullboot package will fail.)
+To obtain a recovery key and unblock the VM boot, please follow the steps outlined below. Once input the recovery key into the Serial Console of the impacted VM, we expected you could login successfully. At this moment, every reboot will require input recovery key. To resolve the issue please follow instruction Fix nullboot Package.
 
 #### Prerequisites
 Here are the pre-requisites you will need to install before going to the next steps.
@@ -99,4 +99,41 @@ Save the recovery key, e.g. `12345-67890-12345-67890-12345-67890-12345-67890`
 ```
 # After getting the recovery key, need to release the disk access before starting the VM.  
 az disk revoke-access --disk-name $os_disk_name --resource-group $rg_name
+```
+
+
+### Fix nullboot Package
+
+The Canonical team provides instructions for virtual machines (VMs) that have incorrectly installed the nullboot package and are stuck in a bad state, where every boot prompts for a recovery key. You can follow the instructions below to recover your VM.
+
+After successfully executing the recovery scripts, further reboots should no longer require a recovery key. If you are already inside the VM, the recovery key will not be required during the recovery process.
+
+```
+## Add the new PPA which contains the new version of nullboot:
+$ sudo add-apt-repository ppa:ubuntu-uefi-team/nullboot
+$ sudo apt update
+
+## Install version 0.5.0-0ubuntu0.22.04.2 of nullboot and verify if the version is correct:
+$ sudo apt install nullboot
+$ apt list --installed nullboot
+
+## Install go:
+$ sudo snap install go --classic
+
+## Clone the repository that contains the go program:
+$ git clone https://github.com/chrisccoulson/fix-azure-fde.git
+
+## Run the following commands to build the project:
+$ cd fix-azure-fde/cmd/fix-azure-fde
+$ go build
+
+## A new binary file called fix-azure-fde will be there. Execute it with sudo privileges:
+$ sudo ./fix-azure-fde
+
+## reboot to validate
+$ sudo reboot
+
+## clean up to remove ppa repo
+$ sudo add-apt-repository --remove ppa:ubuntu-uefi-team/nullboot
+$ sudo apt update
 ```
