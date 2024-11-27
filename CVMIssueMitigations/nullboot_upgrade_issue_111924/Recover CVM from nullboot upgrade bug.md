@@ -113,8 +113,10 @@ After successfully executing the recovery scripts, further reboots should no lon
 $ sudo add-apt-repository ppa:ubuntu-uefi-team/nullboot
 $ sudo apt update
 
-## Install version 0.5.0-0ubuntu0.22.04.2 of nullboot and verify if the version is correct:
+## Install version 0.5.0-0ubuntu0.22.04.2 of nullboot.
+## NOTE: `sudo apt install nullboot` is expected to throw an error, but the installation will still succeed.
 $ sudo apt install nullboot
+## Verify the installation was successful and the installed version is 0.5.0-0ubuntu0.22.04.2:
 $ apt list --installed nullboot
 
 ## Install go:
