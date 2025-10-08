@@ -27,18 +27,36 @@ $keyUri = $headers.'x-ms-meta-Cvm_recovery_key_identifier'
 $wrappedKey = $headers.'x-ms-meta-Cvm_wrapped_recovery_key'
 $osType = $headers.'x-ms-meta-Cvm_recovery_key_os_type'
 
-$token = $null
+$azureAccessToken = $null
 if ($host.Version.Major -eq 5) {
     $resource = [uri]$keyUri
 } else {
     $resource = [uri]$keyUri.GetValue(0)
 }
 if ($resource.Authority.EndsWith("vault.azure.net")) {
-    $token = Get-AzAccessToken -ResourceUrl "https://vault.azure.net"
+    $azureAccessToken = Get-AzAccessToken -ResourceUrl "https://vault.azure.net"
 } else {
-    $token = Get-AzAccessToken -ResourceUrl "https://managedhsm.azure.net"
+    $azureAccessToken = Get-AzAccessToken -ResourceUrl "https://managedhsm.azure.net"
 }
-$token = $token.Token
+
+# New AzCLI SDK versions has Token of type System.Security.SecureString
+if ($azureAccessToken.Token -is [System.Security.SecureString])
+{
+    $ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($azureAccessToken.Token)
+    try
+    {
+        $token = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+    }
+    finally
+    {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+    }
+}
+else
+{
+    $token = $azureAccessToken.Token
+}
+
 $headers = @{'Authorization' = "Bearer $($token)"; "Content-Type" = "application/json"}
 $Body = @{
     "alg" = "$($algorithm)"
